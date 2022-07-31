@@ -8,15 +8,17 @@ using TMPro;
 public class ButtonBehaviour : MonoBehaviour
 {
     NPCStateManager _context;
+    DialogueTrigger _dialogueTrigger;
 
     Vector3 _defaulScale = Vector3.one;
     Vector3 _increasedScale = new Vector3(1.4f, 1.4f, 1.4f);
     Vector3 _selectedScale = new Vector3(1.8f, 1.8f, 1.8f);
     Image _image;
     TextMeshProUGUI _textMesh;
-    private void Start()
+    private void Awake()
     {
         _context = GetComponentInParent<NPCStateManager>();
+        _dialogueTrigger = GetComponentInParent<DialogueTrigger>();
 
         _image = GetComponent<Image>();
         _textMesh = GetComponentInChildren<TextMeshProUGUI>();
@@ -41,12 +43,13 @@ public class ButtonBehaviour : MonoBehaviour
 
         if(this.gameObject.tag == "Button_1")
         {
-            _context.Talk(0);
-
+            DialogueManager.Instance.MakeChoice(DialogueManager.Instance.Choice1Index);
+            _dialogueTrigger.Talk();
         }
         else if(this.gameObject.tag == "Button_2")
         {
-            _context.Talk(1);
+            DialogueManager.Instance.MakeChoice(DialogueManager.Instance.Choice2Index);
+            _dialogueTrigger.Talk();
         }
     }
 }

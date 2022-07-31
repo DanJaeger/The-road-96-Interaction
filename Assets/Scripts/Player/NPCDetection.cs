@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class NPCDetection : MonoBehaviour
@@ -13,7 +11,7 @@ public class NPCDetection : MonoBehaviour
 
     const float c_viewRadius = 3.0f;
     const float c_viewAngle = 60.0f;
-
+    
     public GameObject NPC { get => _npc.gameObject; }
 
     private void Start()
@@ -46,14 +44,14 @@ public class NPCDetection : MonoBehaviour
                     if (distanceToTarget < c_viewRadius)
                     {
                         _npc = target.gameObject.GetComponent<NPCStateManager>();
-                        
-                        if(!_npc.IsTalking && _npc.CanInteract)
-                            _npc.DisplayCanvas();
-                    }
-                    else
-                    {
-                        _npc = target.gameObject.GetComponent<NPCStateManager>();
-                        _npc.HideCanvas();
+                        DialogueManager.Instance.CurrentNPC = _npc;
+                        if(!DialogueManager.Instance.DialogueIsPlaying && _npc.CanInteract) {
+                            _npc.CanShowCanvas = true;
+                        }
+                        else
+                        {
+                            _npc.CanShowCanvas = false;
+                        }
                     }
                 }
             }

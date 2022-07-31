@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f819dc20d7773f4c90dd69b8f0f1b66, type: 3}
+  m_Name: Rick
+  m_EditorClassIdentifier: 
+  NPCName: Rick
+  ChatAudioClips:
+  - {fileID: 8300000, guid: caefa51df3013dd46ae6f58737c3b1a5, type: 3}
+  - {fileID: 8300000, guid: 5d1d2a58c98785e4fbdbe3da2bf64934, type: 3}
+  - {fileID: 8300000, guid: 31693ea30066e174e9097a720cc1f1bb, type: 3}
+  - {fileID: 8300000, guid: 9b8bf5600c0c60a4bb95f4509592d5d9, type: 3}
+  - {fileID: 8300000, guid: 61ef7fb86cdacbf4687a57a49bb55f7a, type: 3}
+  ChatAnimations:
+  - Talk_1

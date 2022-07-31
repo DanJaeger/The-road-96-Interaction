@@ -5,7 +5,6 @@ using UnityEngine.UI;
 
 public class PlayerCamera : MonoBehaviour
 {
-
     [Header("Camera: ")]
     [SerializeField] RectTransform _crosshairImage;
     [SerializeField] Transform _orientation;
@@ -16,13 +15,7 @@ public class PlayerCamera : MonoBehaviour
     float _xRotation = 0.0f;
     float _yRotation = 0.0f;
 
-    InputManager _inputManager;
     Transform _selection;
-
-    private void Awake()
-    {
-        _inputManager = FindObjectOfType<InputManager>().GetComponent<InputManager>();
-    }
     private void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -35,8 +28,8 @@ public class PlayerCamera : MonoBehaviour
     }
     public void HandleRotation()
     {
-        float mouseX = _inputManager.MouseX * _sensibilityX * Time.deltaTime;
-        float mouseY = _inputManager.MouseY * _sensibilityY * Time.deltaTime;
+        float mouseX = InputManager.Instance.MouseX * _sensibilityX * Time.deltaTime;
+        float mouseY = InputManager.Instance.MouseY * _sensibilityY * Time.deltaTime;
 
         _xRotation -= mouseY;
         _yRotation += mouseX;
@@ -59,12 +52,15 @@ public class PlayerCamera : MonoBehaviour
         {
             Transform selection = hit.transform;
             ButtonBehaviour button = selection.GetComponent<ButtonBehaviour>();
-            if (_inputManager.OnLeftClick)
-                button.OnMouseClick();
-            else
-                button.OnMouse();
+            if (button != null)
+            {
+                if (InputManager.Instance.OnLeftClick)
+                    button.OnMouseClick();
+                else
+                    button.OnMouse();
 
-            _selection = selection;
+                _selection = selection;
+            }
         }
         Debug.DrawRay(ray.origin, ray.direction * 3, Color.yellow);
     }

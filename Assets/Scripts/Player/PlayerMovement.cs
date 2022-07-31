@@ -1,17 +1,15 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(InputManager))]
 public class PlayerMovement : MonoBehaviour
 {
+    [Header("Components:")]
     CharacterController _characterController;
-    InputManager _inputManager;
 
     [Header("Movement:")]
     Transform _orientation;
-    float _targetSpeed = 5.0f;
+    readonly float ro_targetSpeed = 5.0f;
     float _newSpeed = 0.0f;
     Vector3 _appliedMovement;
     Vector3 _currentMovement;
@@ -22,22 +20,21 @@ public class PlayerMovement : MonoBehaviour
     private void Awake()
     {
         _characterController = GetComponent<CharacterController>();
-        _inputManager = GetComponent<InputManager>();
 
         _orientation = this.gameObject.transform.GetChild(0);
     }
     private void Update()
     {
-        MovePlayer();
+       MovePlayer();
     }
 
     void MovePlayer()
     {
-        float verticalInput = _inputManager.PlayerMovementInput.y;
-        float horizontalInput = _inputManager.PlayerMovementInput.x;
+        float verticalInput = InputManager.Instance.PlayerMovementInput.y;
+        float horizontalInput = InputManager.Instance.PlayerMovementInput.x;
         _currentMovement = _orientation.forward * verticalInput + _orientation.right * horizontalInput;   
 
-        _newSpeed = Mathf.Lerp(_newSpeed, _targetSpeed, Time.deltaTime * _moveSharpness);
+        _newSpeed = Mathf.Lerp(_newSpeed, ro_targetSpeed, Time.deltaTime * _moveSharpness);
         _appliedMovement = _currentMovement * _newSpeed;
         _characterController.Move(_appliedMovement * Time.deltaTime);
     }
