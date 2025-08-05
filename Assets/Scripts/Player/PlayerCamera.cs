@@ -89,7 +89,6 @@ public class PlayerCamera : MonoBehaviour
 
     private Vector3 GetScreenCenter()
     {
-        // Versión optimizada del cálculo del centro de pantalla
         return new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0f);
     }
 
