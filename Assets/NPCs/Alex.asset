@@ -14,10 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   NPCName: Alex_E1
   ChatAudioClips:
-  - {fileID: 8300000, guid: d8727859f95efd742885aa552d0caaaa, type: 3}
-  - {fileID: 8300000, guid: 50cd840786c20564f85798a54b708315, type: 3}
-  - {fileID: 8300000, guid: f7f18a14862f52346b25dcf77834aedd, type: 3}
-  - {fileID: 8300000, guid: c2fd10b459772804d99f4106748ce2a4, type: 3}
+  - {fileID: 8300000, guid: b91c38717654cfb46bbaf675e28e1256, type: 3}
+  - {fileID: 8300000, guid: b6ba38794a4a0c94faafd632813722e2, type: 3}
+  - {fileID: 8300000, guid: ffbafbdb22e31c342b265013a0cc46d4, type: 3}
+  - {fileID: 8300000, guid: ee352a88b516a9647ae49bc6c1848f32, type: 3}
   ChatAnimations:
   - Talk_1
   - Talk_2
+  - Talk_3
+  ChatAnimationsBlendTreeValues:
+  - {x: 1, y: 1}
+  - {x: 1, y: 0.7}
+  - {x: 1, y: 0.1}
+  - {x: 1, y: -0.6}
+  IdleAnimationsBlendTreeValues:
+  - {x: 0, y: 0.35}
+  - {x: 0, y: 0}

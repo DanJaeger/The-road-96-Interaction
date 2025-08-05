@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   NPCName: Rick
   ChatAudioClips:
-  - {fileID: 8300000, guid: caefa51df3013dd46ae6f58737c3b1a5, type: 3}
-  - {fileID: 8300000, guid: 5d1d2a58c98785e4fbdbe3da2bf64934, type: 3}
-  - {fileID: 8300000, guid: 31693ea30066e174e9097a720cc1f1bb, type: 3}
-  - {fileID: 8300000, guid: 9b8bf5600c0c60a4bb95f4509592d5d9, type: 3}
-  - {fileID: 8300000, guid: 61ef7fb86cdacbf4687a57a49bb55f7a, type: 3}
+  - {fileID: 8300000, guid: 5fb767c116564e3408cfad2508c4ac9f, type: 3}
+  - {fileID: 8300000, guid: f646b2bccdec76242858ba2d1baa698e, type: 3}
+  - {fileID: 8300000, guid: ab947016ddae8bb40b22babffc334a3e, type: 3}
+  - {fileID: 8300000, guid: dddd858d3ecc11f45b883ae3a022e6b7, type: 3}
+  - {fileID: 8300000, guid: 90b8e90ddda957940a6a6dc9709f2c82, type: 3}
   ChatAnimations:
   - Talk_1
+  - Talk_2
+  - Talk_3

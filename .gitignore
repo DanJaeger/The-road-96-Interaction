@@ -70,3 +70,31 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+### === Excepciones para librerías esenciales === ###
+# Ink (y otras librerías externas necesarias)
+!/Assets/Ink/**
+!/Assets/Plugins/**
+
+# Excluir solo plugins de editor específicos (ajusta según necesites)
+Assets/Plugins/Editor/JetBrains*
+Assets/Plugins/Editor/*.meta
+
+# Paquetes instalados manualmente
+!/Assets/External/**
+!/Assets/Standard Assets/**
+
+# Scripts esenciales
+!/Assets/Scripts/**
+
+# Shaders personalizados
+!/Assets/Shaders/**
+
+# Escenas
+!/Assets/Scenes/**
+
+# Excepciones para los nuevos sistemas de Unity
+!/Assets/Samples/**
+!/Assets/TextMesh Pro/**
+!/Packages/manifest.json
+!/Packages/packages-lock.json

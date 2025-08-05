@@ -1,74 +1,100 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
+[RequireComponent(typeof(Camera))]
 public class PlayerCamera : MonoBehaviour
 {
-    [Header("Camera: ")]
-    [SerializeField] RectTransform _crosshairImage;
-    [SerializeField] Transform _orientation;
-    [SerializeField] float _sensibilityX;
-    [SerializeField] float _sensibilityY;
-    [SerializeField] LayerMask _uiLayermask;
+    [Header("Camera Settings")]
+    [SerializeField, Range(0.1f, 10f)] private float _sensibilityX = 2f;
+    [SerializeField, Range(0.1f, 10f)] private float _sensibilityY = 2f;
+    [SerializeField] private LayerMask _uiLayerMask;
+    [SerializeField] private float _interactionDistance = 3f;
+    [SerializeField] private Transform _orientation;
 
-    float _xRotation = 0.0f;
-    float _yRotation = 0.0f;
+    [Header("Crosshair")]
+    [SerializeField] private RectTransform _crosshairImage;
 
-    Transform _selection;
-    private void Start()
+    private float _xRotation;
+    private float _yRotation;
+    private Transform _currentSelection;
+    private Camera _mainCamera;
+    private ButtonBehaviour _currentButton;
+
+    private void Awake()
     {
+        _mainCamera = GetComponent<Camera>();
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
+
     private void Update()
     {
         HandleRotation();
-        SelectObject();
+        HandleInteraction();
     }
-    public void HandleRotation()
+
+    private void HandleRotation()
     {
-        float mouseX = InputManager.Instance.MouseX * _sensibilityX * Time.deltaTime;
-        float mouseY = InputManager.Instance.MouseY * _sensibilityY * Time.deltaTime;
+        Vector2 mouseInput = new Vector2(InputManager.Instance.MouseX, InputManager.Instance.MouseY);
+        float deltaTime = Time.deltaTime;
 
-        _xRotation -= mouseY;
-        _yRotation += mouseX;
-        _xRotation = Mathf.Clamp(_xRotation, -80.0f, 80.0f);
+        _xRotation -= mouseInput.y * _sensibilityY * deltaTime;
+        _yRotation += mouseInput.x * _sensibilityX * deltaTime;
+        _xRotation = Mathf.Clamp(_xRotation, -80f, 80f);
 
-        transform.rotation = Quaternion.Euler(_xRotation, _yRotation, 0);
-        _orientation.rotation = Quaternion.Euler(0, _yRotation, 0);
+        Quaternion cameraRotation = Quaternion.Euler(_xRotation, _yRotation, 0f);
+        transform.rotation = cameraRotation;
+        _orientation.rotation = Quaternion.Euler(0f, _yRotation, 0f);
     }
-    void SelectObject()
+
+    private void HandleInteraction()
     {
-        if(_selection != null)
+        ClearPreviousSelection();
+
+        Ray ray = _mainCamera.ScreenPointToRay(GetScreenCenter());
+        if (Physics.Raycast(ray, out RaycastHit hit, _interactionDistance, _uiLayerMask))
         {
-            ButtonBehaviour button = _selection.GetComponent<ButtonBehaviour>();
-            button.NotOnMouse();
-            _selection = null;
+            ProcessHit(hit);
         }
-        Ray ray = Camera.main.ScreenPointToRay(GetCenterOfScreen());
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit, 3, _uiLayermask))
-        {
-            Transform selection = hit.transform;
-            ButtonBehaviour button = selection.GetComponent<ButtonBehaviour>();
-            if (button != null)
-            {
-                if (InputManager.Instance.OnLeftClick)
-                    button.OnMouseClick();
-                else
-                    button.OnMouse();
 
-                _selection = selection;
+        Debug.DrawRay(ray.origin, ray.direction * _interactionDistance, Color.yellow);
+    }
+
+    private void ClearPreviousSelection()
+    {
+        if (_currentSelection != null)
+        {
+            _currentButton?.NotOnMouse();
+            _currentSelection = null;
+            _currentButton = null;
+        }
+    }
+
+    private void ProcessHit(RaycastHit hit)
+    {
+        _currentSelection = hit.transform;
+        _currentButton = _currentSelection.GetComponent<ButtonBehaviour>();
+
+        if (_currentButton != null)
+        {
+            if (InputManager.Instance.OnLeftClick)
+            {
+                _currentButton.OnMouseClick();
+            }
+            else
+            {
+                _currentButton.OnMouse();
             }
         }
-        Debug.DrawRay(ray.origin, ray.direction * 3, Color.yellow);
     }
-    Vector3 GetCenterOfScreen()
+
+    private Vector3 GetScreenCenter()
     {
-        int x = (Screen.width / 2) - (int)_crosshairImage.rect.width;
-        int y = (Screen.height / 2) - (int)_crosshairImage.rect.height;
-        Vector3 center = new Vector3(x, y, 0);
-        return center;
+        // Versión optimizada del cálculo del centro de pantalla
+        return new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0f);
+    }
+
+    private void OnDisable()
+    {
+        ClearPreviousSelection();
     }
 }

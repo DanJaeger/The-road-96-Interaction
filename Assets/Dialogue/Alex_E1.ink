@@ -1,10 +1,11 @@
 INCLUDE Globals.ink
 
-VAR idleAnimationValue = 0
-VAR talkAnimationValue = 0
+VAR idleAnimationValue = 0.0
+VAR talkAnimationValue = 0.25
 VAR audioValue = 0
 
 -> Phase_1
+
 === Phase_1 ===
 * [You look sad]
     ~ audioValue = 0
@@ -17,8 +18,7 @@ VAR audioValue = 0
 -> END
 
 === Phase_2 ===
-    ~ talkAnimationValue = 1
-    ~ idleAnimationValue = 1
+    ~ talkAnimationValue = 0.5
 * [Why?]
     ~ audioValue = 1
     This is just a prototype
@@ -30,15 +30,14 @@ VAR audioValue = 0
 -> END
 
 === Phase_3 ===
-    ~ talkAnimationValue = 1
+    ~ talkAnimationValue = 0.75
     ~ HaveYouMetAlex = true
 * [What does that mean?]
     ~ audioValue = 2
     It means this project is for learning purposes only
     ->DONE
 * [So?]
-    ~ idleAnimationValue = 0
     ~ audioValue = 3
-    You'll never see me out of this project
+    You will never see me out of this project
     ->DONE
 -> END

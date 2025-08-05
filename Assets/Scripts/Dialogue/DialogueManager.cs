@@ -29,10 +29,15 @@ public class DialogueManager : MonoBehaviour
     const string c_idleAnimationValue = "idleAnimationValue";
     const string c_audioValue = "audioValue";
 
+    [Header("Story Variables")]
     private Story _currentStory;
     bool _dialogueIsPlaying;
 
-    Coroutine _currentCoroutine = null;
+    [Header("Animation Settings")]
+    private const int ARMS_LAYER_INDEX = 1;
+    private const float ARMS_LAYER_INDEX_TRANSITION_SPEED = 0.3f;
+
+    private Coroutine _talkingCoroutine = null;
 
     private static DialogueManager _instance;
     public static DialogueManager Instance { get => _instance; }
@@ -59,8 +64,9 @@ public class DialogueManager : MonoBehaviour
     }
     public void StartConversation()
     {
+        //DebugStoryState();
         _dialogueVariables.StartListening(_currentStory);
-        _currentStory.Continue();
+         _currentStory.Continue();
         if (!String.IsNullOrEmpty(_currentStory.currentText))
         {
             _nameText.text = _currentNPC.Npc.name + ": ";
@@ -70,11 +76,16 @@ public class DialogueManager : MonoBehaviour
             _subtitlesText.text = _currentStory.currentText;
             SetAudio();
         }
-        else
-        {
-            _currentStory.ContinueMaximally();
-        }
-        ChangeOptions();
+         ChangeOptions();
+    }
+    private void DebugStoryState()
+    {
+        Debug.Log("===DIALOGUE MANAGER ===");
+        Debug.Log($"CanContinue: {_currentStory.canContinue}");
+        Debug.Log($"Current Text: '{_currentStory.currentText}'");
+        Debug.Log($"Current Tags: {string.Join(", ", _currentStory.currentTags)}");
+        Debug.Log($"Current Path: {_currentStory.path}");
+        Debug.Log($"Choices Count: {_currentStory.currentChoices.Count}");
     }
     public void EnterDialogueMode()
     {
@@ -102,12 +113,29 @@ public class DialogueManager : MonoBehaviour
     }
     void PlayAnimation()
     {
-        var animationValue = (int)_currentStory.variablesState[c_talkAnimationValue];
-        if (animationValue < _currentNPC.Npc.ChatAnimations.Length)
+        if (_currentStory.variablesState.GlobalVariableExistsWithName(c_talkAnimationValue))
         {
-            string currentAnimation = _currentNPC.Npc.ChatAnimations[animationValue];
-            _currentNPC.Animator.Play(currentAnimation);
+            var animationValue = (float)_currentStory.variablesState[c_talkAnimationValue];
+            StartCoroutine(PlayAnimationWithTransition(animationValue));
         }
+    }
+    IEnumerator PlayAnimationWithTransition(float animationValue)
+    {
+        if (!_currentNPC.Animator) yield break;
+
+        float blendTime = 0.3f;
+        float timer = 0f;
+        float startBlend = _currentNPC.Animator.GetFloat("AnimationValue");
+        float targetBlend = animationValue;
+
+        while (timer < blendTime)
+        {
+            timer += Time.deltaTime;
+            float blendValue = Mathf.Lerp(startBlend, targetBlend, timer / blendTime);
+            _currentNPC.Animator.SetFloat("AnimationValue", blendValue);
+            yield return null;
+        }
+        _currentNPC.Animator.SetFloat("AnimationValue", targetBlend);
     }
     void SetAudio()
     {
@@ -116,19 +144,19 @@ public class DialogueManager : MonoBehaviour
     }
     public void SetIdleAnimation()
     {
-        if (_currentStory.variablesState[c_idleAnimationValue] != null)
+        if (_currentStory.variablesState.GlobalVariableExistsWithName(c_idleAnimationValue))
         {
-            var animationValue = (int)_currentStory.variablesState[c_idleAnimationValue];
-            _currentNPC.Animator.SetFloat("AnimationValue", animationValue);
+            var animationValue = (float)_currentStory.variablesState[c_idleAnimationValue];
+            StartCoroutine(PlayAnimationWithTransition(animationValue));
         }
     }
     public void ChangeOptions()
     {
-        if (_currentCoroutine != null)
+        if (_talkingCoroutine != null)
         {
-            StopCoroutine(_currentCoroutine);
+            StopCoroutine(_talkingCoroutine);
         }
-        _currentCoroutine = StartCoroutine(WaitForNPCToFinishTalking(_currentNPC.AudioSource.clip.length + 0.5f));
+        _talkingCoroutine = StartCoroutine(WaitForNPCToFinishTalking(_currentNPC.AudioSource.clip.length + 0.5f));
     }
     IEnumerator WaitForNPCToFinishTalking(float timeToFinishTalking)
     {
@@ -136,10 +164,16 @@ public class DialogueManager : MonoBehaviour
 
         yield return new WaitForSeconds(timeToFinishTalking);
 
+        FinishConversation();
+    }
+    private void FinishConversation()
+    {
         _dialogueVariables.StopListening(_currentStory);
         _subtitlesCanvas.SetActive(false);
         _dialogueIsPlaying = false;
         _subtitlesText.text = "";
+        _currentNPC.CanShowCanvas = false;
+        SetIdleAnimation();
     }
     public void DisplayChoices()
     {
@@ -147,7 +181,7 @@ public class DialogueManager : MonoBehaviour
             _choicesText = _currentNPC.GetComponentsInChildren<TextMeshProUGUI>();
         else
             _choicesText = FindObjectOfType<NPCStateManager>().GetComponentsInChildren<TextMeshProUGUI>();
-        
+
         List<Choice> currentChoices = _currentStory.currentChoices;
 
         int index = 0;

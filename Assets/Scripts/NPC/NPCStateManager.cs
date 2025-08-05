@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class NPCStateManager : MonoBehaviour
@@ -14,10 +15,10 @@ public class NPCStateManager : MonoBehaviour
     bool _canShowCanvas;
     int _isSadAnimationHash;
 
-    public Animator Animator { get => _animator;}
+    public Animator Animator { get => _animator; }
     public NPC Npc { get => _npc; set => _npc = value; }
     public bool CanInteract { get => _canInteract; set => _canInteract = value; }
-    public int IsSadAnimationHash { get => _isSadAnimationHash;}
+    public int IsSadAnimationHash { get => _isSadAnimationHash; }
     public AudioSource AudioSource { get => _audioSource; set => _audioSource = value; }
     public bool CanShowCanvas { get => _canShowCanvas; set => _canShowCanvas = value; }
 
@@ -37,9 +38,5 @@ public class NPCStateManager : MonoBehaviour
     {
         _audioSource.clip = _npc.ChatAudioClips[clipNumber];
         _audioSource.Play();
-    }
-    public void SetAnimation()
-    {
-        DialogueManager.Instance.SetIdleAnimation();
     }
 }
