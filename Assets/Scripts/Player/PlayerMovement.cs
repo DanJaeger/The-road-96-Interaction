@@ -1,41 +1,63 @@
 using UnityEngine;
 
+/// <summary>
+/// Handles player movement using a CharacterController.
+/// Movement direction is based on an orientation transform (usually the camera).
+/// Requires: CharacterController + InputManager
+/// </summary>
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(InputManager))]
 public class PlayerMovement : MonoBehaviour
 {
-    [Header("Components:")]
-    CharacterController _characterController;
+    [Header("References")]
+    private CharacterController _characterController;
 
-    [Header("Movement:")]
-    Transform _orientation;
-    readonly float ro_targetSpeed = 5.0f;
-    float _newSpeed = 0.0f;
-    Vector3 _appliedMovement;
-    Vector3 _currentMovement;
-    
-    [Header("Sharpness:")]
-    float _moveSharpness = 10.0f;
+    [Tooltip("Transform used to determine movement direction (typically a child with camera orientation).")]
+    private Transform _orientation;
+
+    [Header("Movement Settings")]
+    [Range(1f, 15f)]
+    private float _targetSpeed = 5.0f;
+
+    [Range(1f, 30f)]
+    private float _accelerationSharpness = 10.0f;
+
+    private float _currentSpeed;
+    private Vector3 _movementInput;
+    private Vector3 _appliedMovement;
 
     private void Awake()
     {
         _characterController = GetComponent<CharacterController>();
 
-        _orientation = this.gameObject.transform.GetChild(0);
+        // If no orientation is assigned, take the first child by default
+        if (_orientation == null && transform.childCount > 0)
+        {
+            _orientation = transform.GetChild(0);
+            Debug.LogWarning($"{nameof(PlayerMovement)}: No orientation assigned. Using first child as orientation.");
+        }
     }
+
     private void Update()
     {
-       MovePlayer();
+        HandleMovement();
     }
 
-    void MovePlayer()
+    /// <summary>
+    /// Reads input, calculates movement direction, smooths speed, and moves the CharacterController.
+    /// </summary>
+    private void HandleMovement()
     {
-        float verticalInput = InputManager.Instance.PlayerMovementInput.y;
-        float horizontalInput = InputManager.Instance.PlayerMovementInput.x;
-        _currentMovement = _orientation.forward * verticalInput + _orientation.right * horizontalInput;   
+        // --- Get input from InputManager ---
+        Vector2 input = InputManager.Instance.PlayerMovementInput;
+        _movementInput = _orientation.forward * input.y + _orientation.right * input.x;
+        _movementInput.Normalize(); // normalize so diagonal movement isn’t faster
 
-        _newSpeed = Mathf.Lerp(_newSpeed, ro_targetSpeed, Time.deltaTime * _moveSharpness);
-        _appliedMovement = _currentMovement * _newSpeed;
+        // --- Smooth speed towards target ---
+        _currentSpeed = Mathf.Lerp(_currentSpeed, _targetSpeed, Time.deltaTime * _accelerationSharpness);
+
+        // --- Apply movement ---
+        _appliedMovement = _movementInput * _currentSpeed;
         _characterController.Move(_appliedMovement * Time.deltaTime);
     }
 }
