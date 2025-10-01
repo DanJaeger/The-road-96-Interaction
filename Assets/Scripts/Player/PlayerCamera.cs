@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(Camera))]
 public class PlayerCamera : MonoBehaviour
@@ -6,8 +8,6 @@ public class PlayerCamera : MonoBehaviour
     [Header("Camera Settings")]
     [SerializeField, Range(0.1f, 10f)] private float _sensibilityX = 2f;
     [SerializeField, Range(0.1f, 10f)] private float _sensibilityY = 2f;
-    [SerializeField] private LayerMask _uiLayerMask;
-    [SerializeField] private float _interactionDistance = 3f;
     [SerializeField] private Transform _orientation;
 
     [Header("Crosshair")]
@@ -15,13 +15,10 @@ public class PlayerCamera : MonoBehaviour
 
     private float _xRotation;
     private float _yRotation;
-    private Transform _currentSelection;
-    private Camera _mainCamera;
     private ButtonBehaviour _currentButton;
 
     private void Awake()
     {
-        _mainCamera = GetComponent<Camera>();
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
@@ -43,57 +40,78 @@ public class PlayerCamera : MonoBehaviour
 
         Quaternion cameraRotation = Quaternion.Euler(_xRotation, _yRotation, 0f);
         transform.rotation = cameraRotation;
-        _orientation.rotation = Quaternion.Euler(0f, _yRotation, 0f);
+        if (_orientation != null)
+            _orientation.rotation = Quaternion.Euler(0f, _yRotation, 0f);
     }
 
     private void HandleInteraction()
     {
-        ClearPreviousSelection();
+        if (EventSystem.current == null) return;
 
-        Ray ray = _mainCamera.ScreenPointToRay(GetScreenCenter());
-        if (Physics.Raycast(ray, out RaycastHit hit, _interactionDistance, _uiLayerMask))
+        Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+        PointerEventData pointer = new PointerEventData(EventSystem.current) { position = screenCenter };
+
+        List<RaycastResult> results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(pointer, results);
+
+        // DEBUG: listar todos los resultados
+        foreach (var r in results)
         {
-            ProcessHit(hit);
+            Debug.Log($"[UI RAYCAST] Hit: {r.gameObject.name} (Module: {r.module}, Depth: {r.depth})");
         }
 
-        Debug.DrawRay(ray.origin, ray.direction * _interactionDistance, Color.yellow);
-    }
-
-    private void ClearPreviousSelection()
-    {
-        if (_currentSelection != null)
+        // Buscar el primer objeto que tenga ButtonBehaviour en sus padres
+        ButtonBehaviour foundButton = null;
+        foreach (var r in results)
         {
-            _currentButton?.NotOnMouse();
-            _currentSelection = null;
-            _currentButton = null;
-        }
-    }
-
-    private void ProcessHit(RaycastHit hit)
-    {
-        _currentSelection = hit.transform;
-        _currentButton = _currentSelection.GetComponent<ButtonBehaviour>();
-
-        if (_currentButton != null)
-        {
-            if (InputManager.Instance.OnLeftClick)
+            var btn = r.gameObject.GetComponentInParent<ButtonBehaviour>();
+            if (btn != null)
             {
-                _currentButton.OnMouseClick();
+                foundButton = btn;
+                break;
             }
-            else
+        }
+
+        if (foundButton != null)
+        {
+            if (foundButton != _currentButton)
             {
+                if (_currentButton != null)
+                {
+                    Debug.Log($"[UI RAYCAST] Exit: {_currentButton.name}");
+                    _currentButton.NotOnMouse();
+                }
+
+                _currentButton = foundButton;
+
+                Debug.Log($"[UI RAYCAST] Enter: {_currentButton.name}");
                 _currentButton.OnMouse();
             }
-        }
-    }
 
-    private Vector3 GetScreenCenter()
-    {
-        return new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0f);
+            if (InputManager.Instance.OnLeftClick)
+            {
+                Debug.Log($"[UI RAYCAST] Click on {_currentButton.name}");
+                _currentButton.OnMouseClick();
+            }
+        }
+        else
+        {
+            if (_currentButton != null)
+            {
+                Debug.Log($"[UI RAYCAST] Exit: {_currentButton.name}");
+                _currentButton.NotOnMouse();
+                _currentButton = null;
+            }
+        }
     }
 
     private void OnDisable()
     {
-        ClearPreviousSelection();
+        if (_currentButton != null)
+        {
+            Debug.Log($"[UI RAYCAST] Exit (OnDisable): {_currentButton.name}");
+            _currentButton.NotOnMouse();
+        }
+        _currentButton = null;
     }
 }

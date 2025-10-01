@@ -12,8 +12,10 @@ public class ButtonBehaviour : MonoBehaviour
     Vector3 _defaulScale = Vector3.one;
     Vector3 _increasedScale = new Vector3(1.4f, 1.4f, 1.4f);
     Vector3 _selectedScale = new Vector3(1.8f, 1.8f, 1.8f);
+
     Image _image;
     TextMeshProUGUI _textMesh;
+
     private void Awake()
     {
         _dialogueTrigger = GetComponentInParent<DialogueTrigger>();
@@ -21,20 +23,27 @@ public class ButtonBehaviour : MonoBehaviour
         _image = GetComponent<Image>();
         _textMesh = GetComponentInChildren<TextMeshProUGUI>();
     }
+
     public void OnMouse()
     {
+        Debug.Log($"[ButtonBehaviour] Hover ENTER: {gameObject.name}");
         this.transform.DOScale(_increasedScale, 0.3f);
         _image.color = Color.yellow;
         _textMesh.color = Color.black;
     }
+
     public void NotOnMouse()
     {
+        Debug.Log($"[ButtonBehaviour] Hover EXIT: {gameObject.name}");
         this.transform.DOScale(_defaulScale, 0.3f);
         _image.color = Color.black;
         _textMesh.color = Color.white;
     }
+
     public void OnMouseClick()
     {
+        Debug.Log($"[ButtonBehaviour] CLICK: {gameObject.name}");
+
         this.transform.DOScale(_selectedScale, 0.3f);
         _image.color = Color.white;
         _textMesh.color = Color.white;

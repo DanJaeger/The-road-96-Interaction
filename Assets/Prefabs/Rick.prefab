@@ -1280,9 +1280,7 @@ GameObject:
   - component: {fileID: 4272180428745480712}
   - component: {fileID: 4272180428745480715}
   - component: {fileID: 4272180428745480714}
-  - component: {fileID: 4272180428745480823}
-  - component: {fileID: 4272180428745480822}
-  - component: {fileID: 4272180428745480713}
+  - component: {fileID: 924569524871927723}
   m_Layer: 5
   m_Name: Button_2
   m_TagString: Button_2
@@ -1374,7 +1372,7 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!114 &4272180428745480823
+--- !u!114 &924569524871927723
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1386,35 +1384,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 793af20e0b129c94591e349fcbdd6660, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!54 &4272180428745480822
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4272180428745480716}
-  serializedVersion: 2
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 112
-  m_CollisionDetection: 0
---- !u!65 &4272180428745480713
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4272180428745480716}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 600, y: 120, z: 1}
-  m_Center: {x: -0, y: 0, z: 0}
 --- !u!1 &4272180429137479410
 GameObject:
   m_ObjectHideFlags: 0
@@ -1427,9 +1396,7 @@ GameObject:
   - component: {fileID: 4272180429137479422}
   - component: {fileID: 4272180429137479409}
   - component: {fileID: 4272180429137479408}
-  - component: {fileID: 4272180429137479421}
-  - component: {fileID: 4272180429137479420}
-  - component: {fileID: 4272180429137479423}
+  - component: {fileID: 306646391680539585}
   m_Layer: 5
   m_Name: Button_1
   m_TagString: Button_1
@@ -1521,7 +1488,7 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!114 &4272180429137479421
+--- !u!114 &306646391680539585
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1533,35 +1500,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 793af20e0b129c94591e349fcbdd6660, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!54 &4272180429137479420
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4272180429137479410}
-  serializedVersion: 2
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 112
-  m_CollisionDetection: 0
---- !u!65 &4272180429137479423
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4272180429137479410}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 600, y: 120, z: 1}
-  m_Center: {x: -0, y: 0, z: 0}
 --- !u!1 &4272180429202883352
 GameObject:
   m_ObjectHideFlags: 0
