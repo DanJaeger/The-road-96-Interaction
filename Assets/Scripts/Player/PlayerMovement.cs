@@ -13,7 +13,7 @@ public class PlayerMovement : MonoBehaviour
     private CharacterController _characterController;
 
     [Tooltip("Transform used to determine movement direction (typically a child with camera orientation).")]
-    private Transform _orientation;
+    [SerializeField] private Transform _orientation;
 
     [Header("Movement Settings")]
     [Range(1f, 15f)]
