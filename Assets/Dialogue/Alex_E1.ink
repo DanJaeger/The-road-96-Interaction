@@ -40,4 +40,5 @@ VAR audioValue = 0
     ~ audioValue = 3
     You will never see me out of this project
     ->DONE
+    ~ idleAnimationValue = 0.0
 -> END

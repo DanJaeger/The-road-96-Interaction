@@ -33,4 +33,5 @@ VAR audioValue = 4
     ~ audioValue = 3
     I hope you have a good time
     ->DONE
+    ~ idleAnimationValue = 0.0
 -> END

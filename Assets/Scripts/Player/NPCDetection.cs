@@ -42,6 +42,8 @@ public class NPCDetection : MonoBehaviour
     /// </summary>
     private void FindVisibleTargets()
     {
+        bool foundAnyNPC = false;
+
         int targetsFound = Physics.OverlapSphereNonAlloc(
             transform.position,
             VIEW_RADIUS,
@@ -54,12 +56,10 @@ public class NPCDetection : MonoBehaviour
             Transform target = _colliderBuffer[i].transform;
             Vector3 directionToTarget = (target.position - transform.position).normalized;
 
-            // Check if the target is inside the vision cone
             if (Vector3.Angle(transform.forward, directionToTarget) < VIEW_ANGLE)
             {
                 float distanceToTarget = Vector3.Distance(transform.position, target.position);
 
-                // Check for obstacles between this object and the target
                 if (!Physics.Raycast(transform.position, directionToTarget, distanceToTarget, _obstacleMask))
                 {
                     NPCStateManager potentialNPC = target.GetComponent<NPCStateManager>();
@@ -68,18 +68,25 @@ public class NPCDetection : MonoBehaviour
                         _npc = potentialNPC;
                         DialogueManager.Instance.CurrentNPC = _npc;
 
-                        // NPC canvas should only be visible if no dialogue is active and NPC is interactable
                         bool shouldShowCanvas = !DialogueManager.Instance.DialogueIsPlaying && _npc.CanInteract;
                         _npc.CanShowCanvas = shouldShowCanvas;
 
-                        // Stop after finding one valid NPC
-                        if (shouldShowCanvas)
-                            break;
+                        foundAnyNPC = true;
+                        if (shouldShowCanvas) break;
                     }
                 }
             }
         }
+
+        // Reset if no NPC is detected this frame
+        if (!foundAnyNPC && _npc != null)
+        {
+            _npc.CanShowCanvas = false;
+            _npc = null;
+            DialogueManager.Instance.CurrentNPC = null;
+        }
     }
+
 
     private void OnDisable()
     {

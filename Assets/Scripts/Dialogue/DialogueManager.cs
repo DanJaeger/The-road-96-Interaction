@@ -80,6 +80,14 @@ public class DialogueManager : MonoBehaviour
     /// </summary>
     public void StartConversation()
     {
+        if (_currentStory == null)
+        {
+            Debug.LogWarning("Trying to start dialogue without a valid Story!");
+            return;
+        }
+
+        StopTalkingCoroutine();
+
         _dialogueVariables.StartListening(_currentStory);
 
         _currentStory.Continue(); // Go to the first block
@@ -102,6 +110,14 @@ public class DialogueManager : MonoBehaviour
     /// </summary>
     public void EnterDialogueMode()
     {
+        if (_currentStory == null)
+        {
+            Debug.LogWarning("Trying to start dialogue without a valid Story!");
+            return;
+        }
+
+        StopTalkingCoroutine();
+
         _dialogueVariables.StartListening(_currentStory);
 
         _nameText.text = _currentNPC.Npc.name + ": ";
@@ -148,24 +164,27 @@ public class DialogueManager : MonoBehaviour
     /// <summary>
     /// Smooth transition between animation blend values.
     /// </summary>
-    private IEnumerator PlayAnimationWithTransition(float animationValue)
+    private IEnumerator PlayAnimationWithTransition(float targetBlend)
     {
-        if (!_currentNPC.Animator) yield break;
+        if (_currentNPC == null || _currentNPC.Animator == null)
+            yield break;
 
-        float blendTime = 0.3f;
-        float timer = 0f;
-        float startBlend = _currentNPC.Animator.GetFloat("AnimationValue");
-        float targetBlend = animationValue;
+        float currentBlend = _currentNPC.Animator.GetFloat("AnimationValue");
+        float velocity = 0f;
+        float smoothTime = 0.5f;
 
-        while (timer < blendTime)
+        while (Mathf.Abs(currentBlend - targetBlend) > 0.01f)
         {
-            timer += Time.deltaTime;
-            float blendValue = Mathf.Lerp(startBlend, targetBlend, timer / blendTime);
-            _currentNPC.Animator.SetFloat("AnimationValue", blendValue);
+            if (_currentNPC == null || _currentNPC.Animator == null)
+                yield break;
+
+            currentBlend = Mathf.SmoothDamp(currentBlend, targetBlend, ref velocity, smoothTime);
+            _currentNPC.Animator.SetFloat("AnimationValue", currentBlend);
             yield return null;
         }
 
-        _currentNPC.Animator.SetFloat("AnimationValue", targetBlend);
+        if (_currentNPC != null && _currentNPC.Animator != null)
+            _currentNPC.Animator.SetFloat("AnimationValue", targetBlend);
     }
 
     /// <summary>
@@ -191,6 +210,18 @@ public class DialogueManager : MonoBehaviour
             StartCoroutine(PlayAnimationWithTransition(animationValue));
         }
     }
+
+    /// <summary>
+    /// Stop talking coroutine while still talking.
+    /// </summary>
+    private void StopTalkingCoroutine()
+    {
+        if (_talkingCoroutine != null)
+        {
+            StopCoroutine(_talkingCoroutine);
+            _talkingCoroutine = null;
+        }
+    }
     #endregion
 
     #region Choices Handling
@@ -199,26 +230,32 @@ public class DialogueManager : MonoBehaviour
     /// </summary>
     public void DisplayChoices()
     {
-        _choicesText = _currentNPC != null
-            ? _currentNPC.GetComponentsInChildren<TextMeshProUGUI>()
-            : FindObjectOfType<NPCStateManager>()?.GetComponentsInChildren<TextMeshProUGUI>();
-
-        if (_choicesText == null) return;
+        if (_currentNPC != null)
+            _choicesText = _currentNPC.GetComponentsInChildren<TextMeshProUGUI>();
+        else
+            _choicesText = FindObjectOfType<NPCStateManager>().GetComponentsInChildren<TextMeshProUGUI>();
 
         List<Choice> currentChoices = _currentStory.currentChoices;
+
+        int index = 0;
         if (currentChoices.Count > 0)
         {
             _choice1Index = currentChoices[0].index;
-            _choice2Index = currentChoices.Count > 1 ? currentChoices[1].index : -1;
+            if (currentChoices.Count > 1)
+                _choice2Index = currentChoices[1].index;
 
-            for (int i = 0; i < currentChoices.Count && i < _choicesText.Length; i++)
+            foreach (Choice choice in currentChoices)
             {
-                _choicesText[i].text = currentChoices[i].text;
+                if (_choicesText.Length > index)
+                {
+                    _choicesText[index].text = choice.text;
+                    index++;
+                }
             }
         }
         else
         {
-            _currentNPC.CanInteract = false;
+            if (_currentNPC != null) _currentNPC.CanInteract = false;
         }
     }
 
@@ -227,7 +264,8 @@ public class DialogueManager : MonoBehaviour
     /// </summary>
     public void MakeChoice(int choiceIndex)
     {
-        _currentStory.ChooseChoiceIndex(choiceIndex);
+        if (_currentStory == null) return;
+        _currentStory.ChooseChoiceIndex(choiceIndex);   
     }
     #endregion
 
@@ -238,34 +276,57 @@ public class DialogueManager : MonoBehaviour
     private void ChangeOptions()
     {
         if (_talkingCoroutine != null)
+        {
             StopCoroutine(_talkingCoroutine);
-
-        float waitTime = _currentNPC.AudioSource?.clip != null
-            ? _currentNPC.AudioSource.clip.length + 0.5f
-            : 0.5f;
-
+        }
+        float waitTime = _currentNPC?.AudioSource.clip?.length + 0.5f ?? 0.5f;
         _talkingCoroutine = StartCoroutine(WaitForNPCToFinishTalking(waitTime));
     }
 
     private IEnumerator WaitForNPCToFinishTalking(float timeToFinishTalking)
     {
         DisplayChoices();
+
         yield return new WaitForSeconds(timeToFinishTalking);
+
         FinishConversation();
     }
+
 
     /// <summary>
     /// Ends dialogue with the current NPC.
     /// </summary>
-    private void FinishConversation()
-    {
-        _dialogueVariables.StopListening(_currentStory);
-        _subtitlesCanvas.SetActive(false);
-        _dialogueIsPlaying = false;
-        _subtitlesText.text = "";
-        _currentNPC.CanShowCanvas = false;
+     private void FinishConversation()
+     {
+         if (_currentStory == null || _currentNPC == null) return;
 
-        SetIdleAnimation();
-    }
+         if (_currentStory != null)
+         {
+             _dialogueVariables.StopListening(_currentStory);
+
+             SetIdleAnimation();
+
+             _currentStory = null;
+         }
+
+         _subtitlesCanvas.SetActive(false);
+         _dialogueIsPlaying = false;
+         _subtitlesText.text = "";
+
+         if (_currentNPC != null)
+         {
+             _currentNPC.CanShowCanvas = false;
+             StartCoroutine(ClearNPCReferenceDelayed(2.0f));//Used to smooth transition to idle
+         }
+     }
+
+     private IEnumerator ClearNPCReferenceDelayed(float delay)
+     {
+         yield return new WaitForSeconds(delay);
+         _currentNPC = null;
+     }
     #endregion
 }
+
+
+
