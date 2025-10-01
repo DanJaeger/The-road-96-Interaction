@@ -1,92 +1,105 @@
 using System.Collections;
 using System.Collections.Generic;
-using System;
 using UnityEngine;
 using TMPro;
 using Ink.Runtime;
 using Ink.UnityIntegration;
 
+/// <summary>
+/// DialogueManager controls Ink dialogues flow.
+/// Responsibilities:
+/// - Displaying subtitles and choices.
+/// - Controlling NPC animations during dialogue.
+/// - Playing NPC voice/audio.
+/// - Handling Ink story progression and choices.
+/// </summary>
 public class DialogueManager : MonoBehaviour
 {
-    NPCStateManager _currentNPC = null;
-
     [Header("Dialogue UI")]
-    [SerializeField] private GameObject _subtitlesCanvas;
-    [SerializeField] private TextMeshProUGUI _subtitlesText;
-    [SerializeField] private TextMeshProUGUI _nameText;
+    [SerializeField] private GameObject _subtitlesCanvas;           // Dialogue canvas (subtitles panel)
+    [SerializeField] private TextMeshProUGUI _subtitlesText;        // Current dialogue text
+    [SerializeField] private TextMeshProUGUI _nameText;             // NPC name text
 
     [Header("Globals Ink File")]
-    [SerializeField] InkFile _globalsInkFile;
+    [SerializeField] private InkFile _globalsInkFile;               // Ink global variables file
 
     [Header("Choices UI")]
-    private TextMeshProUGUI[] _choicesText;
-    int _choice1Index;
-    int _choice2Index;
+    private TextMeshProUGUI[] _choicesText;                         // Choices displayed on screen
+    private int _choice1Index;
+    private int _choice2Index;
 
-    [Header("Dialogue Variables")]
-    DialogueVariables _dialogueVariables;
-    const string c_talkAnimationValue = "talkAnimationValue";
-    const string c_idleAnimationValue = "idleAnimationValue";
-    const string c_audioValue = "audioValue";
+    [Header("Ink Variables")]
+    private DialogueVariables _dialogueVariables;
+    private const string TALK_ANIM = "talkAnimationValue";
+    private const string IDLE_ANIM = "idleAnimationValue";
+    private const string AUDIO_VAL = "audioValue";
 
     [Header("Story Variables")]
-    private Story _currentStory;
-    bool _dialogueIsPlaying;
-
-    [Header("Animation Settings")]
-    private const int ARMS_LAYER_INDEX = 1;
-    private const float ARMS_LAYER_INDEX_TRANSITION_SPEED = 0.3f;
+    private Story _currentStory;                                    // Active Ink story
+    private bool _dialogueIsPlaying;
 
     private Coroutine _talkingCoroutine = null;
 
+    // Current NPC reference
+    private NPCStateManager _currentNPC = null;
+
+    // Singleton instance
     private static DialogueManager _instance;
-    public static DialogueManager Instance { get => _instance; }
+    public static DialogueManager Instance => _instance;
+
+    #region Properties
     public NPCStateManager CurrentNPC { get => _currentNPC; set => _currentNPC = value; }
     public Story CurrentStory { get => _currentStory; set => _currentStory = value; }
-    public int Choice1Index { get => _choice1Index; private set => _choice1Index = value; }
-    public int Choice2Index { get => _choice2Index; private set => _choice2Index = value; }
+    public int Choice1Index => _choice1Index;
+    public int Choice2Index => _choice2Index;
     public bool DialogueIsPlaying { get => _dialogueIsPlaying; set => _dialogueIsPlaying = value; }
+    #endregion
 
+    #region Unity Methods
     private void Awake()
     {
         if (_instance != null)
         {
-            Debug.LogWarning("Found more than one Dialogue Manager in the scene");
+            Debug.LogWarning("Found more than one DialogueManager in the scene!");
         }
         _instance = this;
 
         _dialogueVariables = new DialogueVariables(_globalsInkFile.filePath);
     }
+
     private void Start()
     {
         _dialogueIsPlaying = false;
         _subtitlesCanvas.SetActive(false);
     }
+    #endregion
+
+    #region Dialogue Flow
+    /// <summary>
+    /// Starts a new conversation with the current NPC.
+    /// </summary>
     public void StartConversation()
     {
-        //DebugStoryState();
         _dialogueVariables.StartListening(_currentStory);
-         _currentStory.Continue();
-        if (!String.IsNullOrEmpty(_currentStory.currentText))
+
+        _currentStory.Continue(); // Go to the first block
+        if (!string.IsNullOrEmpty(_currentStory.currentText))
         {
             _nameText.text = _currentNPC.Npc.name + ": ";
             _dialogueIsPlaying = true;
             _subtitlesCanvas.SetActive(true);
+
             PlayAnimation();
             _subtitlesText.text = _currentStory.currentText;
             SetAudio();
         }
-         ChangeOptions();
+
+        ChangeOptions();
     }
-    private void DebugStoryState()
-    {
-        Debug.Log("===DIALOGUE MANAGER ===");
-        Debug.Log($"CanContinue: {_currentStory.canContinue}");
-        Debug.Log($"Current Text: '{_currentStory.currentText}'");
-        Debug.Log($"Current Tags: {string.Join(", ", _currentStory.currentTags)}");
-        Debug.Log($"Current Path: {_currentStory.path}");
-        Debug.Log($"Choices Count: {_currentStory.currentChoices.Count}");
-    }
+
+    /// <summary>
+    /// Enters dialogue mode (when story already started).
+    /// </summary>
     public void EnterDialogueMode()
     {
         _dialogueVariables.StartListening(_currentStory);
@@ -94,8 +107,13 @@ public class DialogueManager : MonoBehaviour
         _nameText.text = _currentNPC.Npc.name + ": ";
         _dialogueIsPlaying = true;
         _subtitlesCanvas.SetActive(true);
+
         ContinueStory();
     }
+
+    /// <summary>
+    /// Advances the current Ink story if possible.
+    /// </summary>
     private void ContinueStory()
     {
         if (_currentStory.canContinue)
@@ -106,20 +124,31 @@ public class DialogueManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("No Continua");
+            Debug.Log("Story finished or cannot continue.");
             _currentNPC.CanInteract = false;
         }
+
         ChangeOptions();
     }
-    void PlayAnimation()
+    #endregion
+
+    #region Animations & Audio
+    /// <summary>
+    /// Plays NPC talking animation (based on Ink variable).
+    /// </summary>
+    private void PlayAnimation()
     {
-        if (_currentStory.variablesState.GlobalVariableExistsWithName(c_talkAnimationValue))
+        if (_currentStory.variablesState.GlobalVariableExistsWithName(TALK_ANIM))
         {
-            var animationValue = (float)_currentStory.variablesState[c_talkAnimationValue];
+            var animationValue = (float)_currentStory.variablesState[TALK_ANIM];
             StartCoroutine(PlayAnimationWithTransition(animationValue));
         }
     }
-    IEnumerator PlayAnimationWithTransition(float animationValue)
+
+    /// <summary>
+    /// Smooth transition between animation blend values.
+    /// </summary>
+    private IEnumerator PlayAnimationWithTransition(float animationValue)
     {
         if (!_currentNPC.Animator) yield break;
 
@@ -135,37 +164,99 @@ public class DialogueManager : MonoBehaviour
             _currentNPC.Animator.SetFloat("AnimationValue", blendValue);
             yield return null;
         }
+
         _currentNPC.Animator.SetFloat("AnimationValue", targetBlend);
     }
-    void SetAudio()
+
+    /// <summary>
+    /// Plays NPC voice/audio (based on Ink variable).
+    /// </summary>
+    private void SetAudio()
     {
-        var audioValue = (int)_currentStory.variablesState[c_audioValue];
-        _currentNPC.PlayAudio(audioValue);
+        if (_currentStory.variablesState.GlobalVariableExistsWithName(AUDIO_VAL))
+        {
+            int audioValue = (int)_currentStory.variablesState[AUDIO_VAL];
+            _currentNPC.PlayAudio(audioValue);
+        }
     }
+
+    /// <summary>
+    /// Switches NPC animation back to idle after dialogue ends.
+    /// </summary>
     public void SetIdleAnimation()
     {
-        if (_currentStory.variablesState.GlobalVariableExistsWithName(c_idleAnimationValue))
+        if (_currentStory.variablesState.GlobalVariableExistsWithName(IDLE_ANIM))
         {
-            var animationValue = (float)_currentStory.variablesState[c_idleAnimationValue];
+            var animationValue = (float)_currentStory.variablesState[IDLE_ANIM];
             StartCoroutine(PlayAnimationWithTransition(animationValue));
         }
     }
-    public void ChangeOptions()
+    #endregion
+
+    #region Choices Handling
+    /// <summary>
+    /// Displays available choices on screen.
+    /// </summary>
+    public void DisplayChoices()
+    {
+        _choicesText = _currentNPC != null
+            ? _currentNPC.GetComponentsInChildren<TextMeshProUGUI>()
+            : FindObjectOfType<NPCStateManager>()?.GetComponentsInChildren<TextMeshProUGUI>();
+
+        if (_choicesText == null) return;
+
+        List<Choice> currentChoices = _currentStory.currentChoices;
+        if (currentChoices.Count > 0)
+        {
+            _choice1Index = currentChoices[0].index;
+            _choice2Index = currentChoices.Count > 1 ? currentChoices[1].index : -1;
+
+            for (int i = 0; i < currentChoices.Count && i < _choicesText.Length; i++)
+            {
+                _choicesText[i].text = currentChoices[i].text;
+            }
+        }
+        else
+        {
+            _currentNPC.CanInteract = false;
+        }
+    }
+
+    /// <summary>
+    /// Selects a dialogue choice.
+    /// </summary>
+    public void MakeChoice(int choiceIndex)
+    {
+        _currentStory.ChooseChoiceIndex(choiceIndex);
+    }
+    #endregion
+
+    #region Timing & Conversation End
+    /// <summary>
+    /// Sets delay before showing choices or ending conversation.
+    /// </summary>
+    private void ChangeOptions()
     {
         if (_talkingCoroutine != null)
-        {
             StopCoroutine(_talkingCoroutine);
-        }
-        _talkingCoroutine = StartCoroutine(WaitForNPCToFinishTalking(_currentNPC.AudioSource.clip.length + 0.5f));
+
+        float waitTime = _currentNPC.AudioSource?.clip != null
+            ? _currentNPC.AudioSource.clip.length + 0.5f
+            : 0.5f;
+
+        _talkingCoroutine = StartCoroutine(WaitForNPCToFinishTalking(waitTime));
     }
-    IEnumerator WaitForNPCToFinishTalking(float timeToFinishTalking)
+
+    private IEnumerator WaitForNPCToFinishTalking(float timeToFinishTalking)
     {
         DisplayChoices();
-
         yield return new WaitForSeconds(timeToFinishTalking);
-
         FinishConversation();
     }
+
+    /// <summary>
+    /// Ends dialogue with the current NPC.
+    /// </summary>
     private void FinishConversation()
     {
         _dialogueVariables.StopListening(_currentStory);
@@ -173,39 +264,8 @@ public class DialogueManager : MonoBehaviour
         _dialogueIsPlaying = false;
         _subtitlesText.text = "";
         _currentNPC.CanShowCanvas = false;
+
         SetIdleAnimation();
     }
-    public void DisplayChoices()
-    {
-        if (_currentNPC != null)
-            _choicesText = _currentNPC.GetComponentsInChildren<TextMeshProUGUI>();
-        else
-            _choicesText = FindObjectOfType<NPCStateManager>().GetComponentsInChildren<TextMeshProUGUI>();
-
-        List<Choice> currentChoices = _currentStory.currentChoices;
-
-        int index = 0;
-        if (currentChoices.Count > 0)
-        {
-            _choice1Index = currentChoices[0].index;
-            _choice2Index = currentChoices[1].index;
-            foreach (Choice choice in currentChoices)
-            {
-                if (_choicesText.Length > 1)
-                {
-                    _choicesText[index].text = choice.text;
-                    index++;
-                }
-            }
-        }
-        else
-        {
-            _currentNPC.CanInteract = false;
-        }
-
-    }
-    public void MakeChoice(int choiceIndex)
-    {
-        _currentStory.ChooseChoiceIndex(choiceIndex);
-    }
+    #endregion
 }
